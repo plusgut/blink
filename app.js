@@ -38,11 +38,8 @@ var blinker = {
 				}
 			}
 
-			blink1.fadeToRGB(self.length, color[0], color[1], color[2], blinker.hold.bind(blinker));
+			blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 		});
-	},
-	hold: function() {
-		setTimeout(blinker.writePattern.bind(blinker), this.length);
 	},
 	increment: function(value, length) {
 		value++;
@@ -53,10 +50,32 @@ var blinker = {
 	}
 };
 
+var runloop = {
+	jobs: [],
+	ticks: 1500,
+	init: function() {
+		this.loop();
+	},
+	loop: function() {
+		for(var i = 0; i < this.jobs.length; i++) {
+			try {
+				this.jobs[i].callback();
+			} catch(err) {
+				console.log(this.jobs[i], err);
+			}
+		}
+		setTimeout(this.loop.bind(this), this.ticks);
+	},
+	addJob: function(job) {
+		this.jobs.push(job);
+	}
+};
+
+runloop.init();
+runloop.addJob({callback: blinker.writePattern.bind(blinker)});
+
 var values = ['red', 'blue', 'white', 'green'];
 
 for(var i = 0; i < values.length; i++) {
 	blinker.values.push(blinker.getColor(values[i]));
 }
-
-blinker.writePattern();
