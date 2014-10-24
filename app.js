@@ -42,22 +42,29 @@ var blinker = {
 					}
 				}
 			}
-			if(!color) {
-				if(self.values.length === 0) {
+			if(self.values.length === 0) {
+				
+			} else {
+				if(!color) {
 					color = self.getColor('white');
-				} else {
-					color = self.values[0];
 				}
+				color = self.getColorcode(color);
+				blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 			}
-			color = self.getColorcode(color);
-			blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 		});
 	},
 	add: function(colorCode) {
 		this.values.push(colorCode);
 	},
 	remove: function(colorCode) {
-
+		var result = [];
+		for(var i = 0; i < this.values.length; i++) {
+			var value = this.values[i];
+			if(!(colorCode[0] == value[0] && colorCode[1] == value[1] && colorCode[2] == value[2])) {
+				result.push(value);
+			}
+		}
+		this.values = result;
 	},
 	increment: function(value, length) {
 		value++;
@@ -76,10 +83,14 @@ var runloop = {
 	},
 	loop: function() {
 		for(var i = 0; i < this.jobs.length; i++) {
-			try {
+			if(true) {
 				this.jobs[i].callback();
-			} catch(err) {
-				console.log(this.jobs[i], err);
+			} else {
+				try {
+					this.jobs[i].callback();
+				} catch(err) {
+					console.log(this.jobs[i], err);
+				}
 			}
 		}
 		setTimeout(this.loop.bind(this), this.ticks);
@@ -92,15 +103,23 @@ var runloop = {
 runloop.init();
 runloop.addJob({callback: blinker.writePattern.bind(blinker)});
 
-var values = ['red', 'blue', 'white', 'green'];
-
-for(var i = 0; i < values.length; i++) {
-	blinker.add(blinker.getColor(values[i]));
-}
+app.get('/removeColor/:code', function (req, res, next) {
+	var colorCode = blinker.getColor(req.params.code);
+	blinker.remove(colorCode);
+	res.end(JSON.stringify(blinker.values));
+});
 
 app.get('/remove/:r/:g/:b', function (req, res, next) {
 	var colorCode = [req.params.r, req.params.g, req.params.b];
 	blinker.remove(colorCode);
+	res.end(JSON.stringify(blinker.values));
+});
+
+app.get('/addColor/:code', function (req, res, next) {
+	var colorCode = blinker.getColor(req.params.code);
+	if(colorCode) {
+		blinker.add(colorCode);
+	}
 	res.end(JSON.stringify(blinker.values));
 });
 
