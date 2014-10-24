@@ -1,5 +1,9 @@
-var Blink1 = require('node-blink1');
-var blink1 = new Blink1();
+var Blink1  = require('node-blink1');
+var express = require('express');
+var blink1  = new Blink1();
+var app     = express();
+var router  = express.Router();
+
 
 var blinker = {
 	def: 'white',
@@ -13,6 +17,14 @@ var blinker = {
 			console.log('Color ' + color + ' not found');
 			return this.colors.black;
 		}
+	},
+	getColorcode: function(values) {
+		var result = [];
+		for (var i = 0; i < values.length; i++) {
+			result.push(parseInt(values[i]));
+		}
+
+		return result;
 	},
 	writePattern: function() {
 		var self = this;
@@ -37,9 +49,15 @@ var blinker = {
 					color = self.values[0];
 				}
 			}
-
+			color = self.getColorcode(color);
 			blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 		});
+	},
+	add: function(colorCode) {
+		this.values.push(colorCode);
+	},
+	remove: function(colorCode) {
+
 	},
 	increment: function(value, length) {
 		value++;
@@ -77,5 +95,24 @@ runloop.addJob({callback: blinker.writePattern.bind(blinker)});
 var values = ['red', 'blue', 'white', 'green'];
 
 for(var i = 0; i < values.length; i++) {
-	blinker.values.push(blinker.getColor(values[i]));
+	blinker.add(blinker.getColor(values[i]));
 }
+
+app.get('/remove/:r/:g/:b', function (req, res, next) {
+	var colorCode = [req.params.r, req.params.g, req.params.b];
+	blinker.remove(colorCode);
+	res.end(JSON.stringify(blinker.values));
+});
+
+app.get('/add/:r/:g/:b', function (req, res, next) {
+	var colorCode = [req.params.r, req.params.g, req.params.b];
+	console.log(colorCode);
+	blinker.add(colorCode);
+	res.end(JSON.stringify(blinker.values));
+});
+
+app.get('/get/', function (req, res, next) {
+	res.end(JSON.stringify(blinker.values));
+});
+
+app.listen(8080);
