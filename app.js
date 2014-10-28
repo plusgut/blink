@@ -47,8 +47,10 @@ var blinker = {
 				color = self.values[0]; // When the color was not found, it either was removed or black was used for toggling
 			}
 			color = self.getColorcode(color);
-			console.log(color);
-			blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
+			if(!(r == color[0] && g == color[1] && b == color[2])) { // Not really needed, but keeps logs clean
+				console.log(color);
+				blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
+			}
 		});
 	},
 	add: function(colorCode) {
