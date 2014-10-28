@@ -124,7 +124,6 @@ app.get('/addColor/:code', function (req, res, next) {
 
 app.get('/add/:r/:g/:b', function (req, res, next) {
 	var colorCode = [req.params.r, req.params.g, req.params.b];
-	console.log(colorCode);
 	blinker.add(colorCode);
 	res.end(JSON.stringify(blinker.values));
 });
