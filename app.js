@@ -2,13 +2,11 @@ var Blink1  = require('node-blink1');
 var express = require('express');
 var blink1  = new Blink1();
 var app     = express();
-var router  = express.Router();
-
 
 var blinker = {
-	def: 'white',
 	values: [],
 	length: 800,
+	// Just some colors i could think of
 	colors: {black: [0, 0, 0], white: [255, 255, 255], red: [255, 0, 0], green: [0, 255, 0], blue: [0, 0, 255]},
 	getColor: function(color) {
 		if(this.colors[color]) {
@@ -28,7 +26,6 @@ var blinker = {
 	},
 	writePattern: function() {
 		var self = this;
-		var white = self.getColor('white');
 		blink1.rgb(0, function(r, g, b) {
 			var found = false;
 			var color = null;
@@ -36,7 +33,7 @@ var blinker = {
 				var colorCode = self.values[i];
 				if(r == colorCode[0] && g == colorCode[1] && b == colorCode[2]) {
 					if(self.values.length === 1) {
-						color = white;
+						color = self.getColor('white'); // When a color is alone, white should be toggling
 					} else {
 						var next = self.increment(i, self.values.length);
 						color = self.values[next];
@@ -44,10 +41,10 @@ var blinker = {
 				}
 			}
 			if(self.values.length === 0) {
-				blink1.disableServerDown(1);
+				blink1.disableServerDown(1); // When no tasks are inside, disable it
 			} else {
 				if(!color) {
-					color = self.values[0];
+					color = self.values[0]; // When the color was not found, it either was removed or white was used for toggling
 				}
 				color = self.getColorcode(color);
 				console.log(color);
@@ -105,6 +102,7 @@ var runloop = {
 runloop.init();
 runloop.addJob({callback: blinker.writePattern.bind(blinker)});
 
+// small API
 app.get('/removeColor/:code', function (req, res, next) {
 	var colorCode = blinker.getColor(req.params.code);
 	blinker.remove(colorCode);
