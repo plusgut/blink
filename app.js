@@ -41,15 +41,13 @@ var blinker = {
 				}
 			}
 			if(self.values.length === 0) {
-				blink1.disableServerDown(1); // When no tasks are inside, disable it
-			} else {
-				if(!color) {
-					color = self.values[0]; // When the color was not found, it either was removed or white was used for toggling
-				}
-				color = self.getColorcode(color);
-				console.log(color);
-				blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
+				color = self.getColor('black'); // When no tasks are inside, disable it
+			} else if(!color) {
+				color = self.values[0]; // When the color was not found, it either was removed or white was used for toggling
 			}
+			color = self.getColorcode(color);
+			console.log(color);
+			blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 		});
 	},
 	add: function(colorCode) {
