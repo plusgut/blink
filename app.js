@@ -28,6 +28,7 @@ var blinker = {
 	},
 	writePattern: function() {
 		var self = this;
+		var white = self.getColor('white');
 		blink1.rgb(0, function(r, g, b) {
 			var found = false;
 			var color = null;
@@ -35,7 +36,7 @@ var blinker = {
 				var colorCode = self.values[i];
 				if(r == colorCode[0] && g == colorCode[1] && b == colorCode[2]) {
 					if(self.values.length === 1) {
-						color = self.getColor('white');
+						color = white;
 					} else {
 						var next = self.increment(i, self.values.length);
 						color = self.values[next];
@@ -46,9 +47,10 @@ var blinker = {
 				
 			} else {
 				if(!color) {
-					color = self.getColor('white');
+					color = self.values[0];
 				}
 				color = self.getColorcode(color);
+				console.log(color);
 				blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
 			}
 		});
