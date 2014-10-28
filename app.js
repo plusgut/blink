@@ -44,7 +44,7 @@ var blinker = {
 				}
 			}
 			if(self.values.length === 0) {
-				
+				blink1.disableServerDown(1);
 			} else {
 				if(!color) {
 					color = self.values[0];
