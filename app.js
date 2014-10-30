@@ -5,6 +5,7 @@ var app     = express();
 
 var blinker = {
 	values: [],
+	current: -1,
 	length: 800,
 	def: 'black', // Default value
 	// Just some colors i could think of
@@ -26,32 +27,13 @@ var blinker = {
 		return result;
 	},
 	writeColor: function() {
-		var self = this;
-		blink1.rgb(0, function(r, g, b) {
-			var found = false;
-			var color = null;
-			for(var i = 0; i < self.values.length; i++) {
-				var colorCode = self.values[i];
-				if(r == colorCode[0] && g == colorCode[1] && b == colorCode[2]) {
-					if(self.values.length === 1) {
-						color = self.getColor(self.def); // When a color is alone, black should be toggling
-					} else {
-						var next = self.increment(i, self.values.length);
-						color = self.values[next];
-					}
-				}
-			}
-			if(self.values.length === 0) {
-				color = self.getColor(self.def); // When no tasks are inside, disable it
-			} else if(!color) {
-				color = self.values[0]; // When the color was not found, it either was removed or black was used for toggling
-			}
-			color = self.getColorcode(color);
-			if(!(r == color[0] && g == color[1] && b == color[2])) { // Not really needed, but keeps logs clean
-				console.log(color);
-				blink1.fadeToRGB(self.length, color[0], color[1], color[2]);
-			}
-		});
+		this.current = this.increment(this.current, this.values.length);
+		var color =  this.getColor(this.def);
+		if(this.current !== -1) {
+			color = this.values[this.current];
+		}
+		console.log(color);
+		blink1.fadeToRGB(this.length, color[0], color[1], color[2]);
 	},
 	add: function(colorCode) {
 		this.values.push(colorCode);
@@ -69,7 +51,11 @@ var blinker = {
 	increment: function(value, length) {
 		value++;
 		if(value >= length) {
-			value = 0;
+			if(length === 0 || length === 1) {
+				value = -1;
+			} else {
+				value = 0;
+			}
 		}
 		return value;
 	}
@@ -111,7 +97,7 @@ app.get('/removeColor/:code', function (req, res, next) {
 });
 
 app.get('/remove/:r/:g/:b', function (req, res, next) {
-	var colorCode = [req.params.r, req.params.g, req.params.b];
+	var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
 	blinker.remove(colorCode);
 	res.end(JSON.stringify(blinker.values));
 });
@@ -125,7 +111,7 @@ app.get('/addColor/:code', function (req, res, next) {
 });
 
 app.get('/add/:r/:g/:b', function (req, res, next) {
-	var colorCode = [req.params.r, req.params.g, req.params.b];
+	var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
 	blinker.add(colorCode);
 	res.end(JSON.stringify(blinker.values));
 });
