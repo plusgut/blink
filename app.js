@@ -49,17 +49,32 @@ var blinker = {
 		this.values = result;
 	},
 	add: function(colorCode, times) {
-		this.values.push({color: colorCode, max: times, times: 0});
+		if(times || !this.exists(colorCode)) {
+			this.values.push({color: colorCode, max: times, times: 0});
+		}
+	},
+	exists: function(colorCode) {
+		for(var i = 0; i < this.values.length; i++) {
+			var value = this.values[i];
+			if(this.isSame(value.color, colorCode)) {
+				return true;
+			}
+		}
 	},
 	remove: function(colorCode) {
 		var result = [];
 		for(var i = 0; i < this.values.length; i++) {
 			var value = this.values[i];
-			if(!(colorCode[0] == value[0] && colorCode[1] == value[1] && colorCode[2] == value[2])) {
+			if(!this.isSame(value.color, colorCode)) {
 				result.push(value);
 			}
 		}
 		this.values = result;
+	},
+	isSame: function(value, colorCode) {
+		if(colorCode[0] == value[0] && colorCode[1] == value[1] && colorCode[2] == value[2]) {
+			return true;
+		}
 	},
 	increment: function(value, length) {
 		value++;
