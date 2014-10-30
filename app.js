@@ -30,13 +30,26 @@ var blinker = {
 		this.current = this.increment(this.current, this.values.length);
 		var color =  this.getColor(this.def);
 		if(this.current !== -1) {
-			color = this.values[this.current];
+			var value = this.values[this.current];
+			color = value.color;
+			value.times++;
 		}
 		console.log(color);
 		blink1.fadeToRGB(this.length, color[0], color[1], color[2]);
+		this.cleanup();
 	},
-	add: function(colorCode) {
-		this.values.push(colorCode);
+	cleanup: function() {
+		var result = [];
+		for(var i = 0; i < this.values.length; i++) {
+			var value = this.values[i];
+			if(!value.max || value.max > value.times) {
+				result.push(value);
+			}
+		}
+		this.values = result;
+	},
+	add: function(colorCode, times) {
+		this.values.push({color: colorCode, max: times, times: 0});
 	},
 	remove: function(colorCode) {
 		var result = [];
@@ -89,35 +102,40 @@ var runloop = {
 runloop.init();
 runloop.addJob({callback: blinker.writeColor.bind(blinker)});
 
-// small API
-app.get('/removeColor/:code', function (req, res, next) {
-	var colorCode = blinker.getColor(req.params.code);
-	blinker.remove(colorCode);
-	res.end(JSON.stringify(blinker.values));
-});
-
-app.get('/remove/:r/:g/:b', function (req, res, next) {
-	var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
-	blinker.remove(colorCode);
-	res.end(JSON.stringify(blinker.values));
-});
-
-app.get('/addColor/:code', function (req, res, next) {
-	var colorCode = blinker.getColor(req.params.code);
-	if(colorCode) {
-		blinker.add(colorCode);
+var api = {
+	removeColor: function (req, res, next) {
+		var colorCode = blinker.getColor(req.params.code);
+		blinker.remove(colorCode);
+		res.end(JSON.stringify(blinker.values));
+	},
+	remove: function (req, res, next) {
+		var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
+		blinker.remove(colorCode);
+		res.end(JSON.stringify(blinker.values));
+	},
+	addColor: function (req, res, next) {
+		var colorCode = blinker.getColor(req.params.code);
+		if(colorCode) {
+			blinker.add(colorCode, req.params.max);
+		}
+		res.end(JSON.stringify(blinker.values));
+	},
+	add: function (req, res, next) {
+		var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
+		blinker.add(colorCode, req.params.max);
+		res.end(JSON.stringify(blinker.values));
+	},
+	get: function (req, res, next) {
+		res.end(JSON.stringify(blinker.values));
 	}
-	res.end(JSON.stringify(blinker.values));
-});
-
-app.get('/add/:r/:g/:b', function (req, res, next) {
-	var colorCode = blinker.getColorcode([req.params.r, req.params.g, req.params.b]);
-	blinker.add(colorCode);
-	res.end(JSON.stringify(blinker.values));
-});
-
-app.get('/get/', function (req, res, next) {
-	res.end(JSON.stringify(blinker.values));
-});
+};
+// small API
+app.get('/removeColor/:code', api.removeColor);
+app.get('/remove/:r/:g/:b', api.remove);
+app.get('/addColor/:code', api.addColor);
+app.get('/addColor/:code/:max', api.addColor);
+app.get('/add/:r/:g/:b', api.add);
+app.get('/add/:r/:g/:b/:max', api.add);
+app.get('/get/', api.get);
 
 app.listen(8080);
