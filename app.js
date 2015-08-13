@@ -95,7 +95,7 @@ var runloop = {
 	init: function() {
 		this.loop();
 	},
-	loop: function() {
+	loop: function(withoutTimeout) {
 		for(var i = 0; i < this.jobs.length; i++) {
 			if(true) {
 				this.jobs[i].callback();
@@ -107,7 +107,9 @@ var runloop = {
 				}
 			}
 		}
-		setTimeout(this.loop.bind(this), this.ticks);
+		if(!withoutTimeout){
+			setTimeout(this.loop.bind(this), this.ticks);
+		}
 	},
 	addJob: function(job) {
 		this.jobs.push(job);
@@ -142,6 +144,10 @@ var api = {
 	},
 	get: function (req, res, next) {
 		res.end(JSON.stringify(blinker.values));
+	},
+	next: function(req, res, next) {
+		runloop.loop(true);
+		res.end(JSON.stringify(blinker.values));
 	}
 };
 // small API
@@ -152,5 +158,6 @@ app.get('/addColor/:code/:max', api.addColor);
 app.get('/add/:r/:g/:b', api.add);
 app.get('/add/:r/:g/:b/:max', api.add);
 app.get('/get/', api.get);
+app.get('/next', api.next);
 
 app.listen(8080);
